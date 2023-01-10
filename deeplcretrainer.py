@@ -151,6 +151,7 @@ def retrain(
         freeze_layers=False,
         costum_modification_file=None,
         outpath="./",
+        freeze_after_concat=0,
         a_blocks=[3],
         a_kernel=[2,4,8],
         a_max_pool=[2],
@@ -165,6 +166,9 @@ def retrain(
         global_num_dens=[3],
         regularizer_val=[0.0000025]
     ):
+
+    if type(datasets) == str:
+        datasets = [datasets]
 
     params = list(itertools.product(*[a_blocks,
                                         a_kernel,
@@ -228,9 +232,11 @@ def retrain(
                 if freeze_layers:
                     
                     for layer in model.layers:
-                        print("Freezing layers")
                         if "concatenate" in layer.name:
-                            set_train_to = True
+                            if freeze_after_concat < 1:
+                                set_train_to = True
+                            freeze_after_concat -= 1
+
                         layer.trainable = set_train_to
             else:
                 model = cnn_functions.init_model(
